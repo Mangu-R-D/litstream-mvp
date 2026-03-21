@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: #111827; /* Dark Gray */
+  --background: #FFFFFF;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground: #F9FAFB;
+    --background: #0F172A; /* Midnight */
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-inter), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Premium typographic defaults */
+h1, h2, h3, h4, h5, h6, .font-serif {
+  font-family: var(--font-playfair), serif;
+}
