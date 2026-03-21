@@ -5,7 +5,8 @@ import { getComingSoonBooks } from "@/lib/mock-cms";
 import ArcForm from "./ArcForm";
 
 export default async function ArcRequestPage() {
-  const sessionCookie = cookies().get("session_user");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_user");
   
   if (!sessionCookie) {
     redirect("/portal/login");

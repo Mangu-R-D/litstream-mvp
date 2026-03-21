@@ -6,7 +6,8 @@ import { addArcRequest } from "@/lib/arc-queue";
 import { redirect } from "next/navigation";
 
 export async function submitArcRequest(formData: FormData) {
-  const sessionCookie = cookies().get("session_user");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_user");
   if (!sessionCookie) {
     return { error: "Authentication required." };
   }

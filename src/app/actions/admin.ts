@@ -6,7 +6,8 @@ import { updateArcStatus } from "@/lib/arc-queue";
 import { revalidatePath } from "next/cache";
 
 export async function processArcRequest(formData: FormData) {
-  const sessionCookie = cookies().get("session_user");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_user");
   if (!sessionCookie) return { error: "Unauthorized" };
 
   const user: User = JSON.parse(sessionCookie.value);

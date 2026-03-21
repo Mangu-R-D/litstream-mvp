@@ -18,7 +18,8 @@ export async function loginAction(formData: FormData) {
   }
 
   // Set the "JWT" cookie (Simplified for MVP without external crypto deps)
-  cookies().set("session_user", JSON.stringify(user), {
+  const cookieStore = await cookies();
+  cookieStore.set("session_user", JSON.stringify(user), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
@@ -30,6 +31,7 @@ export async function loginAction(formData: FormData) {
 }
 
 export async function logoutAction() {
-  cookies().delete("session_user");
+  const cookieStore = await cookies();
+  cookieStore.delete("session_user");
   redirect("/portal/login");
 }

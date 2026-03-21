@@ -5,7 +5,8 @@ import { mockArcQueue } from "@/lib/arc-queue";
 import { processArcRequest } from "@/app/actions/admin";
 
 export default async function AdminQueuePage() {
-  const sessionCookie = cookies().get("session_user");
+  const cookieStore = await cookies();
+  const sessionCookie = cookieStore.get("session_user");
   
   if (!sessionCookie) redirect("/portal/login");
 
