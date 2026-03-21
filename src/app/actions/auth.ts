@@ -1,37 +1,28 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { authenticate } from "@/lib/auth-mock";
 import { redirect } from "next/navigation";
+import { authenticate } from "@/lib/auth-mock";
+import { createSessionToken, sessionCookieOptions, Session } from "@/lib/session";
 
-export async function loginAction(formData: FormData) {
-  const email = formData.get("email") as string;
-  
-  if (!email) {
-    return { error: "Email is required to verify partner status." };
-  }
+export type LoginState = { error?: string };
+
+export async function loginAction(_prevState: LoginState, formData: FormData): Promise<LoginState> {
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Email is required." };
 
   const user = await authenticate(email);
-  
   if (!user) {
     return { error: "No partner account found with this email. Please apply for access." };
   }
 
-  // Set the "JWT" cookie (Simplified for MVP without external crypto deps)
   const cookieStore = await cookies();
-  cookieStore.set("session_user", JSON.stringify(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7 // 1 week
-  });
-
+  cookieStore.set(Session.COOKIE_NAME, createSessionToken(user), sessionCookieOptions());
   redirect("/portal/arc-request");
 }
 
 export async function logoutAction() {
   const cookieStore = await cookies();
-  cookieStore.delete("session_user");
+  cookieStore.delete(Session.COOKIE_NAME);
   redirect("/portal/login");
 }
