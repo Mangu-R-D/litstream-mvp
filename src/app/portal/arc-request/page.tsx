@@ -1,38 +1,55 @@
+import { Suspense } from "react";
+import Link from "next/link";
 import { cookies } from "next/headers";
-import { User } from "@/lib/auth-mock";
 import { redirect } from "next/navigation";
-import { getComingSoonBooks } from "@/lib/mock-cms";
 import ArcForm from "./ArcForm";
+import { getComingSoonBooks } from "@/lib/mock-cms";
+import { readSession } from "@/lib/session";
+import { Card } from "@/components/ui/Card";
 
-export default async function ArcRequestPage() {
+async function ArcRequestContent() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("session_user");
-  
-  if (!sessionCookie) {
-    redirect("/portal/login");
-  }
+  const user = readSession(cookieStore);
+  if (!user) redirect("/portal/login");
 
-  const user: User = JSON.parse(sessionCookie.value);
   const comingSoonBooks = await getComingSoonBooks();
 
   return (
-    <div className="min-h-screen py-12 container mx-auto px-6 max-w-4xl">
-      <div className="flex justify-between items-center mb-12 border-b border-slate-200 pb-6">
+    <div className="grid gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-serif text-4xl font-bold">Partner Request Portal</h1>
-          <p className="text-slate-500 mt-2">Welcome, {user.name} ({user.role})</p>
+          <h1 className="font-serif text-3xl text-slate-900">Partner Request Portal</h1>
+          <p className="mt-2 text-slate-600">
+            Welcome, <span className="font-semibold">{user.name}</span> <span className="text-slate-500">({user.role})</span>
+          </p>
         </div>
-        {user.role === "admin" && (
-          <a href="/portal/admin" className="text-accent font-bold uppercase tracking-widest text-sm hover:underline">
+
+        {user.role === "admin" ? (
+          <Link
+            className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50"
+            href="/portal/admin"
+          >
             Admin Dashboard →
-          </a>
-        )}
+          </Link>
+        ) : null}
       </div>
 
-      <div className="bg-white border border-slate-200 shadow-sm rounded-lg p-8">
-        <h2 className="text-xl font-bold mb-6">Request Advance Reader Copy (ARC)</h2>
-        <ArcForm comingSoonBooks={comingSoonBooks} />
+      <div className="grid gap-2">
+        <h2 className="font-serif text-2xl text-slate-900">Request Advance Reader Copy (ARC)</h2>
+        <p className="text-slate-600">
+          Submit a request for a digital ARC or a physical copy, where available. Requests are reviewed by admin.
+        </p>
       </div>
+
+      <ArcForm comingSoonBooks={comingSoonBooks} />
     </div>
+  );
+}
+
+export default function ArcRequestPage() {
+  return (
+    <Suspense fallback={<Card><p className="text-sm text-slate-600">Loading ARC request form…</p></Card>}>
+      <ArcRequestContent />
+    </Suspense>
   );
 }

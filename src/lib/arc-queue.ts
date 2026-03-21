@@ -1,4 +1,4 @@
-import { PartnerRole } from "./auth-mock";
+import type { PartnerRole } from "./auth-mock";
 
 export interface ArcRequest {
   id: string;
@@ -14,7 +14,6 @@ export interface ArcRequest {
   timestamp: Date;
 }
 
-// In-memory queue for the MVP demo
 export const mockArcQueue: ArcRequest[] = [
   {
     id: "arc_1",
@@ -26,8 +25,8 @@ export const mockArcQueue: ArcRequest[] = [
     format: "digital",
     notes: "Requesting for potential syllabus inclusion.",
     status: "pending",
-    timestamp: new Date()
-  }
+    timestamp: new Date(),
+  },
 ];
 
 export function addArcRequest(request: Omit<ArcRequest, "id" | "status" | "timestamp">) {
@@ -40,8 +39,8 @@ export function addArcRequest(request: Omit<ArcRequest, "id" | "status" | "times
 }
 
 export function updateArcStatus(id: string, newStatus: ArcRequest["status"]) {
-  const req = mockArcQueue.find(r => r.id === id);
-  if (req) {
-    req.status = newStatus;
+  const request = mockArcQueue.find((entry) => entry.id === id);
+  if (request) {
+    request.status = newStatus;
   }
 }

@@ -1,126 +1,101 @@
-import { getFeaturedBooks, getEditorsPicks, getComingSoonBooks } from "@/lib/mock-cms";
-import BookCard from "@/components/BookCard";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import BookCard from "@/components/BookCard";
+import { getComingSoonBooks, getEditorsPicks, getFeaturedBooks } from "@/lib/mock-cms";
 
 export default async function Home() {
-  const featured = await getFeaturedBooks();
-  const editorsPicks = await getEditorsPicks();
-  const comingSoon = await getComingSoonBooks();
+  const [featured, editorsPicks, comingSoon] = await Promise.all([
+    getFeaturedBooks(),
+    getEditorsPicks(),
+    getComingSoonBooks(),
+  ]);
 
-  const heroBook = featured[0];
+  const hero = featured[0];
 
   return (
-    <div className="flex flex-col gap-24 pb-24">
-      
-      {/* 1. Cinematic Hero Section */}
-      {heroBook && (
-        <section className="relative w-full min-h-[75vh] flex items-center justify-center overflow-hidden bg-slate-900 border-b border-slate-800">
-          {/* Background Blur */}
-          <div className="absolute inset-0 opacity-30">
+    <div className="grid gap-12">
+      {hero ? (
+        <section className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="absolute inset-0">
             <Image
-              src={heroBook.coverImage}
-              alt="Hero Background"
+              src={hero.coverImage}
+              alt=""
               fill
-              className="object-cover blur-3xl scale-110"
+              className="object-cover blur-2xl opacity-20"
+              sizes="100vw"
               priority
             />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
 
-          {/* Hero Content */}
-          <div className="relative z-10 container mx-auto px-6 flex flex-col md:flex-row items-center gap-12 max-w-6xl py-20">
-            
-            {/* Book Info */}
-            <div className="flex-1 space-y-6 text-center md:text-left">
-              <div className="inline-block border border-accent/30 bg-accent/10 px-3 py-1 rounded-full">
-                <span className="text-accent text-xs font-bold uppercase tracking-widest">Featured Release</span>
+          <div className="relative grid gap-8 p-8 md:grid-cols-[1.2fr_0.8fr] md:items-center">
+            <div className="grid gap-4">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-600">Featured Release</div>
+              <div>
+                <h1 className="font-serif text-4xl leading-tight text-slate-950 md:text-5xl">{hero.title}</h1>
+                {hero.subtitle ? <p className="mt-2 text-lg text-slate-600">{hero.subtitle}</p> : null}
               </div>
-              <h1 className="font-serif text-5xl md:text-7xl font-bold text-white leading-tight">
-                {heroBook.title}
-              </h1>
-              {heroBook.subtitle && (
-                <p className="text-xl md:text-2xl text-slate-300 font-light italic">
-                  {heroBook.subtitle}
-                </p>
-              )}
-              <p className="text-slate-400 max-w-xl text-lg leading-relaxed mx-auto md:mx-0">
-                {heroBook.synopsisFull}
-              </p>
-              
-              <div className="pt-6 flex flex-col sm:flex-row items-center gap-4 justify-center md:justify-start">
+              <p className="max-w-prose text-slate-700">{hero.synopsisFull}</p>
+
+              <div className="flex flex-wrap gap-3 pt-2">
                 <Link
-                  href={`/book/${heroBook.slug}`}
-                  className="px-8 py-4 bg-white text-slate-900 font-bold uppercase tracking-widest text-sm hover:bg-slate-200 transition-colors w-full sm:w-auto text-center"
+                  href={`/book/${hero.slug}`}
+                  className="rounded-md bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-800"
                 >
                   Read the Prologue
                 </Link>
-                {heroBook.retailerLinks.length > 0 && (
+                {hero.retailerLinks[0]?.url ? (
                   <a
-                    href={heroBook.retailerLinks[0].url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-8 py-4 bg-transparent border border-slate-500 text-white font-bold uppercase tracking-widest text-sm hover:border-white hover:bg-white/5 transition-all w-full sm:w-auto text-center"
+                    href={hero.retailerLinks[0].url}
+                    className="rounded-md border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
                   >
                     Order Now
                   </a>
-                )}
+                ) : null}
               </div>
             </div>
 
-            {/* Hero Cover Image */}
-            <div className="w-full max-w-xs md:max-w-md shrink-0 relative perspective-1000">
-              <div className="relative aspect-[2/3] w-full shadow-2xl shadow-black/80 rotate-y-[-10deg] rotate-x-[5deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-700 ease-out">
-                <Image
-                  src={heroBook.coverImage}
-                  alt={heroBook.title}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
+            <div className="relative mx-auto aspect-[4/5] w-full max-w-[320px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+              <Image
+                src={hero.coverImage}
+                alt={`${hero.title} cover`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 70vw, 320px"
+              />
             </div>
-            
           </div>
         </section>
-      )}
+      ) : null}
 
-      <div className="container mx-auto px-6 max-w-7xl flex flex-col gap-24 mt-12">
-        {/* 2. Editor's Picks Row */}
-        {editorsPicks.length > 0 && (
-          <section>
-            <div className="flex items-end justify-between mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <h2 className="font-serif text-3xl font-bold">Editor's Picks</h2>
-              <Link href="/catalog" className="text-sm font-semibold uppercase tracking-widest text-slate-500 hover:text-accent transition-colors">
-                View All
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              {editorsPicks.map((book) => (
-                <BookCard key={book.id} book={book} />
-              ))}
-            </div>
-          </section>
-        )}
+      {editorsPicks.length ? (
+        <section className="grid gap-5">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-serif text-2xl text-slate-950">Editor’s Picks</h2>
+            <span className="text-sm font-semibold text-slate-500">Curated favorites</span>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {editorsPicks.map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-        {/* 3. Coming Soon Row */}
-        {comingSoon.length > 0 && (
-          <section>
-            <div className="flex items-end justify-between mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
-              <h2 className="font-serif text-3xl font-bold text-slate-400">In Production</h2>
-              <span className="text-sm font-semibold uppercase tracking-widest text-slate-500">
-                Coming Soon
-              </span>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 opacity-80 hover:opacity-100 transition-opacity">
-              {comingSoon.map((book) => (
-                <BookCard key={book.id} book={book} />
-              ))}
-            </div>
-          </section>
-        )}
-      </div>
-
+      {comingSoon.length ? (
+        <section className="grid gap-5">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="font-serif text-2xl text-slate-950">In Production</h2>
+            <Link className="text-sm font-semibold text-slate-700 hover:text-slate-950" href="/portal/login">
+              Partner ARC Requests →
+            </Link>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {comingSoon.map((book) => (
+              <BookCard key={book.id} book={book} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

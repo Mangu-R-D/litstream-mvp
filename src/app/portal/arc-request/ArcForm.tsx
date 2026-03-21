@@ -1,84 +1,113 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
-import { submitArcRequest } from "@/app/actions/arc";
-import { Book } from "@/lib/mock-cms";
-import { useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { submitArcRequest, type ArcState } from "@/app/actions/arc";
+import type { Book } from "@/lib/mock-cms";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <button 
-      type="submit" 
-      disabled={pending}
-      className="w-full bg-foreground text-background font-bold uppercase tracking-widest text-sm py-4 rounded hover:bg-slate-800 disabled:opacity-50 transition-colors"
-    >
-      {pending ? "Submitting..." : "Submit ARC Request"}
-    </button>
-  );
-}
-
-const initialState = { error: "", success: false };
+const initialState: ArcState = {};
 
 export default function ArcForm({ comingSoonBooks }: { comingSoonBooks: Book[] }) {
-  // @ts-ignore
-  const [state, formAction] = useFormState(submitArcRequest, initialState);
+  const [state, formAction, pending] = useActionState(submitArcRequest, initialState);
   const [format, setFormat] = useState<"digital" | "physical">("digital");
+  const defaultSlug = useMemo(() => comingSoonBooks[0]?.slug ?? "", [comingSoonBooks]);
 
-  if (state?.success) {
+  if (state.success) {
     return (
-      <div className="bg-green-50 text-green-800 p-6 rounded-md border border-green-200">
-        <h3 className="font-bold mb-2">Request Submitted Successfully</h3>
-        <p className="text-sm">Your ARC request is now pending admin review. You will be notified once it is approved.</p>
-      </div>
+      <Card>
+        <h3 className="font-serif text-xl text-slate-900">Request submitted</h3>
+        <p className="mt-2 text-slate-600">
+          Your ARC request is pending admin review. You’ll be notified once it is approved.
+        </p>
+      </Card>
     );
   }
 
   return (
-    <form action={formAction} className="flex flex-col space-y-6">
-      {state?.error && (
-        <div className="bg-red-50 text-red-800 p-4 rounded text-sm font-medium">
-          {state.error}
-        </div>
-      )}
+    <Card>
+      <form action={formAction} className="grid gap-5">
+        {state.error ? (
+          <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{state.error}</div>
+        ) : null}
 
-      <div className="flex flex-col space-y-2">
-        <label className="text-sm font-semibold text-slate-700">Select Title</label>
-        <select name="bookSlug" required className="px-4 py-3 rounded-md border border-slate-300 bg-white">
-          <option value="">-- Choose a Coming Soon Title --</option>
-          {comingSoonBooks.map(book => (
-            <option key={book.id} value={book.slug}>{book.title}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="flex flex-col space-y-2">
-        <label className="text-sm font-semibold text-slate-700">Format</label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2">
-            <input type="radio" name="format" value="digital" checked={format === "digital"} onChange={() => setFormat("digital")} />
-            Digital (ePub/PDF)
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700" htmlFor="bookSlug">
+            Select Title
           </label>
-          <label className="flex items-center gap-2">
-            <input type="radio" name="format" value="physical" checked={format === "physical"} onChange={() => setFormat("physical")} />
-            Physical Copy
+          <select
+            id="bookSlug"
+            name="bookSlug"
+            defaultValue={defaultSlug}
+            className="w-full rounded-md border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900"
+            required
+          >
+            {comingSoonBooks.length === 0 ? (
+              <option value="" disabled>
+                No coming soon titles available
+              </option>
+            ) : null}
+            {comingSoonBooks.map((book) => (
+              <option key={book.id} value={book.slug}>
+                {book.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid gap-2">
+          <span className="text-sm font-semibold text-slate-700">Format</span>
+          <div className="flex flex-wrap gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="format"
+                value="digital"
+                checked={format === "digital"}
+                onChange={() => setFormat("digital")}
+              />
+              Digital (ePub/PDF)
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="format"
+                value="physical"
+                checked={format === "physical"}
+                onChange={() => setFormat("physical")}
+              />
+              Physical copy
+            </label>
+          </div>
+        </div>
+
+        {format === "physical" ? (
+          <div className="grid gap-2">
+            <label className="text-sm font-semibold text-slate-700" htmlFor="address">
+              Shipping Address
+            </label>
+            <Input id="address" name="address" placeholder="Street, City, State, ZIP, Country" required />
+          </div>
+        ) : null}
+
+        <div className="grid gap-2">
+          <label className="text-sm font-semibold text-slate-700" htmlFor="notes">
+            Notes / Rationale
           </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows={3}
+            className="w-full rounded-md border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900"
+            placeholder="e.g. syllabus consideration, trade review request, library evaluation…"
+          />
         </div>
-      </div>
 
-      {format === "physical" && (
-        <div className="flex flex-col space-y-2">
-          <label className="text-sm font-semibold text-slate-700">Shipping Address</label>
-          <textarea name="address" rows={3} required className="px-4 py-2 rounded-md border border-slate-300 w-full" placeholder="Full shipping address..." />
-        </div>
-      )}
-
-      <div className="flex flex-col space-y-2">
-        <label className="text-sm font-semibold text-slate-700">Notes / Rationale</label>
-        <textarea name="notes" rows={2} className="px-4 py-2 rounded-md border border-slate-300 w-full" placeholder="e.g. Planning to review for X publication, or consider for Fall Syllabus..." />
-      </div>
-
-      <SubmitButton />
-    </form>
+        <Button type="submit" disabled={pending || comingSoonBooks.length === 0}>
+          {pending ? "Submitting..." : "Submit ARC request"}
+        </Button>
+      </form>
+    </Card>
   );
 }
